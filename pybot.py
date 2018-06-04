@@ -1,5 +1,5 @@
 import config
-import validators as vl
+# import validators as vl
 import re
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -20,41 +20,54 @@ def start(bot, update):
 def tags(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text="tags")
     
+                            
+def isAdmin(fn):
+    
+    def admin(bot, update):
+        chat_id = update.message.chat_id
+        if chat_id == admin_id:
+            fn(bot, update)
+        else:
+            bot.send_message(chat_id, text="ACCESS DENIED")
+    return admin
+
+@isAdmin
+def test(bot, update):
+    bot.send_message(chat_id=update.message.chat_id, text="bla bla")
+
+@isAdmin    
 def tagUpdate(bot, update):
     chat_id = update.message.chat_id
-    if isAdmin(chat_id):
-        msg_text = update.message.text
-        prep_query = re.findall('(#\w+)\s(https?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),])+)', msg_text)
+    # if isAdmin(chat_id):
+    msg_text = update.message.text
+    prep_query = re.findall('(#\w+)\s(https?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),])+)', msg_text)
 
-        if not prep_query :
-            
-            info = """
-            Update tag info or added tag into DB.
-            Usage: /tagupdate #nameTag http://link.to/post?or=another&url=1
-            """
+    if not prep_query :
         
-            bot.send_message(chat_id, text=info)
-        else:
-            tag = prep_query[0][0]
-            url = prep_query[0][1]
+        info = """
+        Update tag info or added tag into DB.
+        Usage: /tagupdate #nameTag http://link.to/post?or=another&url=1
+        """
+        
+        bot.send_message(chat_id, text=info)
+    else:
+        tag = prep_query[0][0]
+        url = prep_query[0][1]
             # TODO: save to DB
-            
+        print(tag, url)    
 
-    else:
-        bot.send_message(chat_id, text="ACCESS DENIED")
-                            
-def isAdmin(chat_id):
-    if chat_id == admin_id:
-        return True
-    else:
-        return False
+    # else:
+    #     bot.send_message(chat_id, text="ACCESS DENIED")
 
+        
 start_handler = CommandHandler(['start', 'help'], start)
 tagUpdate_handler = CommandHandler('tagupdate', tagUpdate)
+test_handler = CommandHandler('test', test)
 tags_handler = CommandHandler('tags', tags)
 dispatcher.add_handler(tags_handler)
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(tagUpdate_handler)
+dispatcher.add_handler(test_handler)
 
 # dispatcher.add_handler(MessageHandler(Filters.text, echo, channel_post_updates = True))
 
