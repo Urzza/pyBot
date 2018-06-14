@@ -1,3 +1,4 @@
+from Tag import *
 import config
 # import validators as vl
 import re
@@ -18,7 +19,14 @@ def start(bot, update):
     """)
 
 def tags(bot, update):
-    bot.send_message(chat_id=update.message.chat_id, text="tags")
+    cursor = Tag.showAll()
+    res = ""
+    for doc in cursor:
+        res += doc["name"] + " "
+
+
+    # print(res)            
+    bot.send_message(chat_id=update.message.chat_id, text=res)
     
                             
 def isAdmin(fn):
@@ -30,6 +38,18 @@ def isAdmin(fn):
         else:
             bot.send_message(chat_id, text="ACCESS DENIED")
     return admin
+
+def tag(bot, update):
+    prep_query = re.findall('#\w+', update.message.text)
+    if not prep_query:
+        info = """
+        Usage: /tag <tagName>
+        """
+        bot.send_message(chat_id=update.message.chat_id, text=info)
+    else:
+        t = Tag(prep_query[0])
+        urls = t.show()
+        bot.send_message(chat_id=update.message.chat_id, text=urls)
 
 @isAdmin
 def test(bot, update):
@@ -54,16 +74,21 @@ def tagUpdate(bot, update):
         tag = prep_query[0][0]
         url = prep_query[0][1]
             # TODO: save to DB
-        print(tag, url)    
+        t = Tag(tag, url)
+        print(tag)
+        st = t.save()
+        bot.send_message(chat_id, text=st)
 
     # else:
     #     bot.send_message(chat_id, text="ACCESS DENIED")
 
-        
+
+tag_handler = CommandHandler('tag', tag)
 start_handler = CommandHandler(['start', 'help'], start)
 tagUpdate_handler = CommandHandler('tagupdate', tagUpdate)
 test_handler = CommandHandler('test', test)
 tags_handler = CommandHandler('tags', tags)
+dispatcher.add_handler(tag_handler)
 dispatcher.add_handler(tags_handler)
 dispatcher.add_handler(start_handler)
 dispatcher.add_handler(tagUpdate_handler)

@@ -39,8 +39,14 @@ class Tag:
                               {"$push" : {"urls" : self.urls}},\
                               True)
             self.status = "clear"
+            return "saved"
         else:
             print("status: %s" % self.status)
+            return "duplicate"
 
     def show(self):
         return self.urls
+        
+    @classmethod
+    def showAll(cls):
+        return cls.db[cls.collectionName].find({})
